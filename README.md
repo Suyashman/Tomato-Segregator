@@ -1,162 +1,239 @@
-🍅 Smart Tomato Segregator (YOLOv8 + Arduino WiFi Automation)
-Real-time object detection and automatic sorting system using YOLOv8, Arduino UNO R4 WiFi, servo motor, OLED display, and phone/laptop camera.
-This project performs 5 different sorting modes using YOLOv8 and sends commands wirelessly to the Arduino to control a servo-based segregation mechanism.
+---
 
-READ LINE 41 ----------< DISCLAIMER >----------
+# Smart Tomato Segregator (YOLOv8 + Arduino WiFi Automation)
 
-📂 Files in This Folder : 
-best.pt	        - YOLOv8 object detection model (trained by me on a small custom dataset — see dataset notes below).
-p7_running.py   - Main Python script for running YOLOv8 + real-time sorting using a wired phone camera (DroidCam USB) or webcam.
-p3_running.ino  -	Arduino UNO R4 WiFi code. Receives commands over WiFi, updates OLED, switches modes, and moves the servo.
+This project uses YOLOv8, an Arduino UNO R4 WiFi board, a servo motor, an OLED display, and a phone/webcam to automatically classify and physically sort tomatoes and vegetables in real-time.
 
-⚙️ System Features
-✔ 1. Tomato vs Other Vegetables
-(tomato → left, onion/potato → right)
+The system detects objects using YOLOv8, selects a sorting direction based on the active mode, and wirelessly sends commands to the Arduino to operate a servo mechanism.
 
-✔ 2. Fresh vs Rotten
-(fresh → left, rotten → right)
+---
 
-✔ 3. Red vs Green Tomato
-(green → left, red → right)
+## Files in This Folder
 
-✔ 4. Small vs Large Tomato
-Based on bounding-box area
-(Threshold ≈ 45,000 px², tunable)
+| File               | Description                                                                                                   |
+| ------------------ | ------------------------------------------------------------------------------------------------------------- |
+| **best.pt**        | YOLOv8 model trained on a small custom dataset (see dataset notes below).                                     |
+| **p7_running.py**  | Main Python script for real-time detection and wireless sorting. Supports wired camera or IP Webcam.          |
+| **p3_running.ino** | Arduino UNO R4 WiFi firmware. Handles WiFi server, OLED display, LED matrix, button modes, and servo control. |
 
-✔ 5. Manual Mode
-Left/right servo movement using buttons
+---
 
+# Features
 
-📸 Camera Options
-Wired Mode (Recommended for less lag - delay)
-Use DroidCam USB or a webcam for lag-free video.
-Set:  CAMERA_INDEX = 1
+### 1. Tomato vs Other Vegetables
 
-Wireless Mode (Optional)
-Use the IP Webcam Android app.
-Set:  CAMERA_URL = "http://your_phone_ip:8080/video"
+Tomato → Left
+Onion or Potato → Right
 
-The main script supports either mode.
+### 2. Fresh vs Rotten
 
-🧠 About the Model (Important Disclaimer)
-⚠️ The “rotten tomatoes” in this dataset are dummy rotten
-They are NOT real spoiled tomatoes.
-They are normal tomatoes with black marker spots to simulate rot.
-Because of this, the model detects black spots, not true rotting patterns.
+Fresh Tomato → Left
+Rotten Tomato (dummy rotten) → Right
 
-This was done just for demonstration purposes , easy implementation 
-For actual implementation , you need to train your own model with real rotten tomatoes
+### 3. Red vs Green Tomato
 
+Green Tomato → Left
+Red Tomato → Right
 
-📦 Dataset Information
-The model was trained using Roboflow on a very small dataset:
-Augmentation was applied : ()
-Dataset Split
-Split	Percent	Images
-Train	  90%	      453
-Valid	  8%	      40
-Test	  2%	      10
- 
-Classes
-red_tomato
-green_tomato
-rotten_tomato (dummy)
-onion
-potato
+### 4. Small vs Large Tomato
 
-Dataset Link
-📎 https://app.roboflow.com/suyashman/tomato-segregation-cpbdd/3
+Uses bounding box area.
+Threshold ≈ **45,000 px²** (adjustable inside Python code).
 
------------------------------------------------------------------------------------------
-🔔 Important Note for Users
-If you want accurate real-world results:
+### 5. Manual Mode
 
-👉 Train your own YOLOv8 model.
-You can: Collect your own tomatoes
-Or place marker dots depending on rot level
-Or fully create your own classification style
-Upload dataset to Roboflow
-Export YOLOv8 format
-Train using: yolo detect train data=data.yaml model=yolov8n.pt epochs=50 imgsz=640
-My included model (best.pt) is only a demo, not production-ready.
------------------------------------------------------------------------------------------
+Servo is controlled using two physical buttons.
 
+---
 
+# Camera Options
 
-🧪 How to Run p7_running.py (Main Script)
-1️⃣ Install dependencies
-pip install ultralytics opencv-python requests
+### Wired (Recommended)
 
-2️⃣ Set your camera
-Inside the script:
-Wired:
+Works with:
+
+* DroidCam USB mode
+* USB webcams
+
+Set in Python:
+
+```
 CAMERA_INDEX = 1
-Wireless:
+```
+
+Try 0/1/2 if needed.
+
+### Wireless (Optional)
+
+Uses the **IP Webcam** Android app.
+
+Set:
+
+```
+CAMERA_URL = "http://your_phone_ip:8080/video"
+```
+
+---
+
+# Important Note About the Model (best.pt)
+
+This YOLOv8 model **does not detect real rotten tomatoes**.
+
+The "rotten tomato" class was created using **dummy samples**:
+
+* Normal tomatoes
+* With black marker dots drawn to simulate rot
+
+Because of this, the model detects **dark spots**, not actual biological spoilage.
+
+### If you want accurate real rot detection:
+
+You must **train your own YOLOv8 model** using real-world data.
+
+---
+
+# Dataset Information
+
+This model was trained on a **very small** custom dataset created using **Roboflow**.
+
+### Dataset Split
+
+| Split      | Percent | Images |
+| ---------- | ------- | ------ |
+| Train      | 90%     | 453    |
+| Validation | 8%      | 40     |
+| Test       | 2%      | 10     |
+
+### Classes
+
+* red_tomato
+* green_tomato
+* rotten_tomato (dummy)
+* onion
+* potato
+
+### Preprocessing
+
+* Auto-Orient: Enabled
+
+### Augmentations
+
+* Horizontal Flip
+* Random Crop (0–20% zoom)
+* Rotation (−15° to +15°)
+* Horizontal Shear (±5°)
+* Brightness (±20%)
+* Exposure (±10%)
+* Blur (0–2px)
+* Random Noise (up to 0.22%)
+
+### Dataset Link
+
+[https://app.roboflow.com/suyashman/tomato-segregation-cpbdd/3](https://app.roboflow.com/suyashman/tomato-segregation-cpbdd/3)
+
+---
+
+# Running the Main Python Script (p7_running.py)
+
+## 1. Install Dependencies
+
+```
+pip install ultralytics opencv-python requests
+```
+
+## 2. Configure Settings
+
+### Set camera source
+
+Wired camera:
+
+```
+CAMERA_INDEX = 1
+```
+
+Wireless camera:
+
+```
 CAMERA_URL = "http://192.168.xxx.xxx:8080/video"
+```
 
-3️⃣ Set your Arduino IP
+### Set Arduino IP
+
+```
 ARDUINO_IP = "http://192.168.137.xxx"
+```
 
-4️⃣ Set your model path
+### Set model path
+
+```
 MODEL_PATH = "best.pt"
+```
 
-5️⃣ Run:
+## 3. Run the Script
+
+```
 python p7_running.py
+```
 
-Press Q to exit.
+Press **Q** to exit.
 
+---
 
+# Arduino Setup (p3_running.ino)
 
-🤖 Arduino Setup (p3_running.ino)
-Hardware connected:
-Pin	Component
-9	Servo
-2	Green button (next mode)
-3	Red button (idle mode)
-4	Blue left (manual)
-5	Blue right (manual)
-I2C	OLED 128×64
-LED Matrix	Internal    (Optional/ Only works in Arduino R4 Wifi)
+### Hardware Connections
 
+| Pin        | Component                 |
+| ---------- | ------------------------- |
+| 9          | Servo (sorting arm)       |
+| 2          | Green button – cycle mode |
+| 3          | Red button – idle mode    |
+| 4          | Blue left button          |
+| 5          | Blue right button         |
+| I2C        | OLED 128×64 display       |
+| LED Matrix | Built-in UNO R4           |
 
-🧭 How the System Works Together
+### Arduino WiFi Routes
 
-Camera → Python script → YOLOv8 detection
-YOLOv8 picks best class
-Code maps class → direction based on active Arduino mode
-Python sends WiFi command to Arduino
-Arduino moves servo → returns to home
-OLED + LED Matrix display status
-Buttons switch modes manually
+| Route            | Description                 |
+| ---------------- | --------------------------- |
+| `/task`          | Returns current mode number |
+| `/cmd?dir=left`  | Move servo left             |
+| `/cmd?dir=right` | Move servo right            |
+| `/cmd?dir=home`  | Move servo to center        |
 
+---
 
-📦 Modes Overview (Arduino-controlled)
-Task	Mode	Left	Right
-0	Idle	—	—
-1	Tomato vs Veg	Tomato	Onion/Potato
-2	Fresh vs Rotten	Fresh	Rotten
-3	Red vs Green	Green	Red
-4	Small vs Large	Small	Large
-5	Manual	Button controlled	Button controlled
+# Mode Overview
 
+| Task | Mode            | Left Output       | Right Output      |
+| ---- | --------------- | ----------------- | ----------------- |
+| 0    | Idle            | —                 | —                 |
+| 1    | Tomato vs Other | Tomato            | Onion/Potato      |
+| 2    | Fresh vs Rotten | Fresh             | Rotten            |
+| 3    | Red vs Green    | Green             | Red               |
+| 4    | Small vs Large  | Small             | Large             |
+| 5    | Manual          | Button-controlled | Button-controlled |
 
-🛠️ Future Improvements
-Real rotten tomato dataset
-Add conveyor belt with timed servo control
-Add more vegetable classes
-Add edge device inference (Nvidia Jetson / RPi)
-Improve stabilization logic for low light
+---
 
+# How the System Works (Pipeline)
 
-🚀 Final Notes
-This system is built to be easy to modify, extend, and retrain.
-You can plug in any trained YOLOv8 model and update your Arduino logic accordingly.
-If you build your own dataset on Roboflow, you will get much better results than the included model.
+1. Camera captures video.
+2. Python (p7_running.py) runs YOLOv8 detection.
+3. Detection → class → sorting rule (based on active Arduino task).
+4. Python sends sorting direction using WiFi (`/cmd?dir=`).
+5. Arduino moves servo to left or right, returns home.
+6. OLED and LED matrix update current mode/status.
+7. Green/red/blue physical buttons control modes and manual actions.
 
+---
 
------------------------------------------------------------------------------------------------
-My notes : 
-This model is really cost effective , it can be built for less than 1,000 INR , practical for farmers and low income households that require segregation for their crop harvests.
-This detection machine is small in size , soo small that it can fit inside a two wheeler's storage.
-The wireless connection causes some lag of about 2 seconds , which can cause the machine to hang and give wrong segregation 
-Wired connection is better. However the wireless mode can be further optimized.
+# Recommendations
+
+* Train your own YOLOv8 model with **real rotten tomatoes** for better accuracy.
+* Use **wired camera** to reduce latency.
+* Adjust `SIZE_THRESHOLD` to match your camera distance and object size.
+* Use good lighting for best YOLO results.
+
+---
